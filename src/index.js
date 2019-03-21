@@ -1,37 +1,49 @@
 module.exports = function check(str, bracketsConfig) {
   if (str.length % 2 != 0)
     return false;
-  debugger;
-  var pairs = new Array(str.length / 2);
-  for(var i = 0; i < pairs.length; i++){
-    pairs[i] = new Array(2);
+  
+  let pairs = new Array(str.length / 2);
+  for(let i = 0; i < pairs.length; i++){
+    pairs[i] = new Array(2).fill(0);
   }
 
-  var iteratorPairs = 0;
+  let iteratorOpen = 0;
+  let currentOpenedBracket = Array(); // хранит тип скобки по номеру ячейки в bracketsConfig
+  let isEqualSymbolsMet = 0;
 
-  for (var i=0; i < str.length; i++) {
-    for (var j=0; j < bracketsConfig.length; j++)
-      if (str[i] == bracketsConfig[j]) {
-        if (j % 2 != 0) {  // для закрывающих скобок
-          if (pairs[iteratorPairs][0] == 0) //если текущая пара скобок начинается с закрывающей => конец
-            return false;
-          pairs[iteratorPairs][1]++;    //заполнение этой пары флагом для закрывающей скобки
-          iteratorPairs++; // переход в следующую ячейку для пар
-        }
-        else {
-          if (!iteratorPairs) { // для первого вхождения
-            pairs[iteratorPairs][0]++;
+  for (let i=0; i < str.length; i++) {
+    for (let j=0; j < bracketsConfig.length; j++)
+      if (str[i] == bracketsConfig[j][0]) { // для открывающих скобок
+        if (bracketsConfig[j][0] == bracketsConfig[j][1]) { //для одинаковых символов
+          if (isEqualSymbolsMet) {  // если уже встречался, то увеличить в pairs ячейку для закрывающей
+            pairs[iteratorOpen-1][1]++;
+            iteratorOpen--;
+            currentOpenedBracket.pop();
+            isEqualSymbolsMet--;
             continue;
           }
-          if (pairs[iteratorPairs][0] == 1 && pairs[iteratorPairs][1] == 1) { //проверка на заполненность последней пары
-            iteratorPairs++;
-            pairs[iteratorPairs][0]++;
-          }
-          else
-            return false;
+          isEqualSymbolsMet++;
         }
+        pairs[iteratorOpen][0]++;
+        iteratorOpen++;
+        currentOpenedBracket.push(j);
+        continue;
+      }
+      else 
+      if (str[i] == bracketsConfig[j][1]) {
+        if (iteratorOpen-1 < 0) // если до этого не была заполнена ячейка с соответсвующей открывающей
+          return false;
+        if (currentOpenedBracket[currentOpenedBracket.length-1] != j)
+          return false;
+        pairs[iteratorOpen-1][1]++;
+        iteratorOpen--;
+        currentOpenedBracket.pop();
+        continue;
       }
   }
 
-  return true;
+  if (iteratorOpen == 0)
+    return true;
+  else
+    return false;
 }
